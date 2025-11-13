@@ -138,12 +138,6 @@ var (
 	// TODO(roasbeef): add command line param to modify.
 	MaxFundingAmount = funding.MaxBtcFundingAmount
 
-	// AccountabilityExperimentEnd is the time after which nodes should stop
-	// propagating experimental accountable signals.
-	//
-	// Per blip04: January 1, 2026 12:00:00 AM UTC in unix seconds.
-	AccountabilityExperimentEnd = time.Unix(1767225600, 0)
-
 	// ErrGossiperBan is one of the errors that can be returned when we
 	// attempt to finalize a connection to a remote peer.
 	ErrGossiperBan = errors.New("gossiper has banned remote's key")
@@ -4421,13 +4415,7 @@ func (s *server) peerConnected(conn net.Conn, connReq *connmgr.ConnReq,
 		AuxTrafficShaper:       s.implCfg.TrafficShaper,
 		AuxChannelNegotiator:   s.implCfg.AuxChannelNegotiator,
 		ShouldFwdExpAccountability: func() bool {
-			if s.cfg.ProtocolOptions.NoExperimentalAccountability() {
-				return false
-			}
-
-			return clock.NewDefaultClock().Now().Before(
-				AccountabilityExperimentEnd,
-			)
+			return !s.cfg.ProtocolOptions.NoExperimentalAccountability()
 		},
 		NoDisconnectOnPongFailure: s.cfg.NoDisconnectOnPongFailure,
 	}
